@@ -12,14 +12,14 @@ class AddressBook(models.Model):
     city            = models.CharField(max_length=10)
     phone_number    = models.CharField(max_length=45)
     member          = models.ForeignKey('Member', on_delete=models.SET_NULL, null=True)
-    
+
     class Meta:
         db_table = 'address_books'
 
 class Member(models.Model):
     firstname         = models.CharField(max_length=10)
     lastname          = models.CharField(max_length=10)
-    email             = models.CharField(max_length=50)
+    email             = models.EmailField(max_length=50)
     social_login_type = models.ForeignKey('SocialLoginType', on_delete=models.SET_NULL, null=True)
 
     class Meta:
