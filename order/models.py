@@ -26,7 +26,7 @@ class OrderDetail(models.Model):
         db_table = 'order_details'
 
 class OrderStatus(models.Model):
-    name = models.CharField(max_lengt=45)
+    name = models.CharField(max_length=45)
 
     class Meta:
         db_table = 'order_status'
