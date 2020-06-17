@@ -1,7 +1,6 @@
 from django.shortcuts import render
 from django.http    import JsonResponse,HttpResponse
 from django.views   import View
-# Create your views here.
 
 from .models import (Product,
                      ProductSize,
@@ -9,7 +8,8 @@ from .models import (Product,
                      ColorProductImage,
                      Color,
                      Fitness,
-                     Size
+                     Size,
+                     SimilarProduct
                     )
 from django.db.models import Avg, Count, Q
 
@@ -17,12 +17,15 @@ class ProductView(View):
     def get(self, request):
         offset = int(request.GET.get('offset',0))
         limit  = int(request.GET.get('limit', 60))
-        all_product = Product.objects.prefetch_related('subcategoryproduct_set','colorproduct_set').all()
-
+        all_product = Product.objects.prefetch_related('subcategoryproduct_set','colorproduct_set','productsize_set').all()
         products=[{
             'id'                    : prod.id,
             'name'                  : prod.name,
             'price_usd'             : prod.price_usd,
+            'size'                  : [{
+                'id'    :   size.size.id,
+                'name'  :   size.size.name,
+            } for size in prod.productsize_set.all()],
             'color'                 : [{
                 'name'      : color.color.name,
                 'code'      : color.color.code,
@@ -31,7 +34,7 @@ class ProductView(View):
                 'blue'      : color.color.blue
             } for color in prod.colorproduct_set.all()],
             'product_image' : prod.colorproduct_set.get(is_default_image=True).image_url,
-            'hover_image'   : [image.image_url for image in prod.colorproduct_set.filter(is_default_image=True) if image != None],
+            'hover_image'   : [image.image_url for image in prod.colorproduct_set.get(is_default_image=True).colorproductimage_set.all() if image != None],
             'defalut_color' : str(prod.colorproduct_set.filter(is_default_image=True).first().color.code),
         } for prod in all_product[offset*limit : (offset+1) * limit]]
 
@@ -41,8 +44,9 @@ class ProductView(View):
 class DetailView(View):
     def get(self, request, product_id):
         try:
-            product     = Product.objects.prefetch_related('review_set','colorproduct_set','productsize_set').select_related('fitness').get(id=product_id)
+            product     = Product.objects.prefetch_related('review_set','colorproduct_set','productsize_set','similarproduct_set').select_related('fitness').get(id=product_id)
             product_img = product.colorproduct_set.all().prefetch_related('colorproductimage_set')
+            similar_prod= product.similarproduct_set.all()
             product_info = {
                 'id'        : product_id,
                 'name'      : product.name,
@@ -57,6 +61,9 @@ class DetailView(View):
                 },
                 'images'    : [{
                     'id'        : image.id,
+                    'color_id'  : image.color.id,
+                    'name'      : image.color.name,
+                    'code'      : image.color.code,
                     'image_url' : image.image_url
                 } for image in product_img],
                 'option'    : [{
@@ -76,6 +83,12 @@ class DetailView(View):
                 'overview'  : product.overview,
                 'feature'   : product.feature,
                 'materials' : product.materials,
+                'similar'   : [{
+                    'name'          : element.view_now.name,
+                    'price'         : element.view_now.price_usd,
+                    'product_image' : element.view_now.colorproduct_set.get(is_default_image=True).image_url,
+                    'hover_image'   : [prob.image_url for prob in element.view_now.colorproduct_set.get(is_default_image=True).colorproductimage_set.all()]
+                } for element in similar_prod]
             }
             return JsonResponse({'data':product_info}, status=200)
         except Product.DoesNotExist:
