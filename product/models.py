@@ -121,4 +121,3 @@ class Usefor(models.Model):
 
     class Meta:
         db_table = 'usefors'
-
