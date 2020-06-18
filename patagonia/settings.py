@@ -57,8 +57,8 @@ WSGI_APPLICATION = 'patagonia.wsgi.application'
 
 
 DATABASES = my_settings.DATABASES
-SECRET_KEY = my_settings.SECRET_KEY
-
+SECRET_KEY= my_settings.SECRET_KEY
+ALGORITHM = my_settings.ALGORITHM
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
