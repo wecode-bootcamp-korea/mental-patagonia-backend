@@ -15,9 +15,10 @@ from django.db.models import Avg, Count, Q
 
 class ProductView(View):
     def get(self, request):
+        sub_category_id = request.GET.get('sub_category_id', None)
         offset = int(request.GET.get('offset',0))
         limit  = int(request.GET.get('limit', 60))
-        all_product = Product.objects.prefetch_related('subcategoryproduct_set','colorproduct_set','productsize_set').all()
+        all_product = Product.objects.prefetch_related('subcategoryproduct_set','colorproduct_set').filter(subcategoryproduct__sub_category=sub_category_id).all()
         products=[{
             'id'                    : prod.id,
             'name'                  : prod.name,
@@ -34,8 +35,11 @@ class ProductView(View):
                 'blue'      : color.color.blue
             } for color in prod.colorproduct_set.all()],
             'product_image' : prod.colorproduct_set.get(is_default_image=True).image_url,
+            'product_image' : prod.colorproduct_set.first().image_url,
             'hover_image'   : [image.image_url for image in prod.colorproduct_set.get(is_default_image=True).colorproductimage_set.all() if image != None],
+            'hover_image'   : [image.image_url for image in prod.colorproduct_set.first().colorproductimage_set.all() if image != None],
             'defalut_color' : str(prod.colorproduct_set.filter(is_default_image=True).first().color.code),
+            'defalut_color' : str(prod.colorproduct_set.first().color.code),
         } for prod in all_product[offset*limit : (offset+1) * limit]]
 
 
