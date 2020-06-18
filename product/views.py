@@ -46,7 +46,7 @@ class DetailView(View):
         try:
             product     = Product.objects.prefetch_related('review_set','colorproduct_set','productsize_set','similarproduct_set').select_related('fitness').get(id=product_id)
             product_img = product.colorproduct_set.all().prefetch_related('colorproductimage_set')
-            similar_prod= product.similarproduct_set.all()
+            similar_prod= product.product.annotate(aa=Avg('view_now__review__overall_rate')).all().order_by('-aa')
             product_info = {
                 'id'        : product_id,
                 'name'      : product.name,
@@ -84,11 +84,11 @@ class DetailView(View):
                 'feature'   : product.feature,
                 'materials' : product.materials,
                 'similar'   : [{
-                    'name'          : element.view_now.name,
-                    'price'         : element.view_now.price_usd,
-                    'product_image' : element.view_now.colorproduct_set.get(is_default_image=True).image_url,
-                    'hover_image'   : [prob.image_url for prob in element.view_now.colorproduct_set.get(is_default_image=True).colorproductimage_set.all()]
-                } for element in similar_prod]
+                    'name'          : element.similar_item.name,
+                    'price'         : element.similar_item.price_usd,
+                    'product_image' : element.similar_item.colorproduct_set.get(is_default_image=True).image_url,
+                    'hover_image'   : [prob.image_url for prob in element.similar_item.colorproduct_set.get(is_default_image=True).colorproductimage_set.all()]
+                } for element in similar_prod[:5]]
             }
             return JsonResponse({'data':product_info}, status=200)
         except Product.DoesNotExist:
