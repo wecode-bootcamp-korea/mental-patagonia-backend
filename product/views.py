@@ -54,11 +54,17 @@ class DetailView(View):
             product     = Product.objects.prefetch_related('review_set','colorproduct_set','productsize_set','similarproduct_set').select_related('fitness').get(id=product_id)
             product_img = product.colorproduct_set.all().prefetch_related('colorproductimage_set')
             similar_prod= product.product.annotate(aa=Avg('view_now__review__overall_rate')).all().order_by('-aa')
+            if product.review_set.first() != None:
+                rating = round(product.review_set.aggregate(Avg('overall_rate'))['overall_rate__avg'],1)
+                review = product.review_set.count()
+            else:
+                rating = 'None'
+                review = 'None'
             product_info = {
                 'id'        : product_id,
                 'name'      : product.name,
-                'rating'    : round(product.review_set.aggregate(Avg('overall_rate'))['overall_rate__avg'],1),
-                'review'    : product.review_set.count(),
+                'rating'    : rating,
+                'review'    : review,
                 'price_usd' : product.price_usd,
                 'default'   : {
                     'id'        : product_img.get(is_default_image=True).color.id,
