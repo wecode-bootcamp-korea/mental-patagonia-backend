@@ -18,7 +18,10 @@ class ProductView(View):
         sub_category_id = request.GET.get('sub_category_id', None)
         offset = int(request.GET.get('offset',0))
         limit  = int(request.GET.get('limit', 60))
-        all_product = Product.objects.prefetch_related('subcategoryproduct_set','colorproduct_set').filter(subcategoryproduct__sub_category=sub_category_id).all()
+        if sub_category_id ==None:
+            all_product = Product.objects.prefetch_related('subcategoryproduct_set','colorproduct_set').all()
+        else:
+            all_product = Product.objects.prefetch_related('subcategoryproduct_set','colorproduct_set').filter(subcategoryproduct__sub_category=sub_category_id)
         products=[{
             'id'                    : prod.id,
             'name'                  : prod.name,
