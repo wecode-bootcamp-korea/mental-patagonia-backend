@@ -12,6 +12,7 @@ class AddressBook(models.Model):
     city            = models.CharField(max_length=10)
     phone_number    = models.CharField(max_length=45)
     member          = models.ForeignKey('Member', on_delete=models.SET_NULL, null=True)
+    is_default      = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'address_books'
