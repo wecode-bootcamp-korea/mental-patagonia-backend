@@ -12,7 +12,7 @@ gunicorn==20.0.4
 idna==2.9
 mccabe==0.6.1
 mysqlclient==1.4.6
-numpy==1.18.4
+numpy==1.22.0
 pandas==1.0.4
 Pillow==7.1.2
 pycodestyle==2.5.0
